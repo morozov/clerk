@@ -4,7 +4,7 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "a5772555f228bc87a070893cc6a24820",
+    "hash": "cb3d5d92093fd884dc50ac2775d9d00b",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -123,6 +123,54 @@
                 "stream"
             ],
             "time": "2014-08-17 21:15:53"
+        },
+        {
+            "name": "idct/php-array-file-cache",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ideaconnect/idct-php-array-file-cache.git",
+                "reference": "e0bba373a6e18c0de55c5c6856afae0566406097"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ideaconnect/idct-php-array-file-cache/zipball/e0bba373a6e18c0de55c5c6856afae0566406097",
+                "reference": "e0bba373a6e18c0de55c5c6856afae0566406097",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "include-path": [
+                ""
+            ],
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Bartosz Pachołek",
+                    "email": "bartosz@ideaconnect.pl",
+                    "role": "lead"
+                }
+            ],
+            "description": "Simple file-based cache system for PHP.",
+            "homepage": "https://github.com/ideaconnect/idct-php-array-file-cache",
+            "keywords": [
+                "cache",
+                "file",
+                "php",
+                "serialize",
+                "storage"
+            ],
+            "time": "2014-08-15 22:48:43"
         },
         {
             "name": "morozov/bootstrap",
@@ -316,7 +364,9 @@
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {
+        "idct/php-array-file-cache": 20
+    },
     "prefer-stable": false,
     "platform": [],
     "platform-dev": []

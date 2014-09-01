@@ -16,6 +16,7 @@
     "morozov/bootstrap": "~1.0",
     "guzzlehttp/guzzle": "~4.2",
     "symfony/config": "~2.5",
-    "symfony/dependency-injection": "~2.5"
+    "symfony/dependency-injection": "~2.5",
+    "idct/php-array-file-cache": "dev-master"
   }
 }

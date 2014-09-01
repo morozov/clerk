@@ -12,8 +12,13 @@
         </service>
 
         <!-- SugarInternal Client -->
+        <service id="cache" class="IDCT\FileArrayCache">
+            <argument>/tmp/clerk</argument>
+        </service>
+
         <service id="client" class="Clerk\Client">
             <argument type="service" id="guzzle"/>
+            <argument type="service" id="cache"/>
             <argument>%sugar-internal.username%</argument>
             <argument>%sugar-internal.password%</argument>
         </service>
