@@ -1,0 +1,59 @@
+<?xml version="1.0" ?>
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <!-- SugarInternal -->
+    <parameters>
+        <parameter key="sugar-internal.url">https://sugarinternal.sugarondemand.com/</parameter>
+        <parameter key="sugar-internal.username">username</parameter>
+        <parameter key="sugar-internal.password">password</parameter>
+    </parameters>
+
+    <!-- Classifier -->
+    <services>
+        <service id="task.bugfixing" class="Clerk\Classifier\Task">
+            <argument>Bugfixing</argument>
+            <argument>b86344ae-3602-7465-fd50-4ec4dd28a3ef</argument>
+        </service>
+        <service id="task.general-activities" class="Clerk\Classifier\Task">
+            <argument>General Activities</argument>
+            <argument>94bf8529-9ea3-ac44-57d2-4ec4dda60ec9</argument>
+        </service>
+        <service id="activity.project-support" class="Clerk\Classifier\Activity">
+            <argument>Project Support</argument>
+            <argument type="service" id="task.bugfixing"/>
+        </service>
+        <service id="activity.interview" class="Clerk\Classifier\Activity">
+            <argument>Interview</argument>
+            <argument type="service" id="task.general-activities"/>
+            <argument type="collection">
+                <argument>interview</argument>
+            </argument>
+        </service>
+        <service id="activity.internal-meetings" class="Clerk\Classifier\Activity">
+            <argument>Internal Meetings</argument>
+            <argument type="service" id="task.general-activities"/>
+            <argument type="collection">
+                <argument>meeting</argument>
+                <argument>discussion</argument>
+            </argument>
+        </service>
+        <service id="activity.pto" class="Clerk\Classifier\Activity">
+            <argument>PTO</argument>
+            <argument type="service" id="task.general-activities"/>
+            <argument type="collection">
+                <argument>PTO</argument>
+            </argument>
+        </service>
+        <service id="classifier" class="Clerk\Classifier">
+            <argument type="collection">
+                <argument type="service" id="activity.interview"/>
+                <argument type="service" id="activity.internal-meetings"/>
+                <argument type="service" id="activity.pto"/>
+            </argument>
+            <argument type="service" id="activity.project-support"/>
+        </service>
+    </services>
+
+</container>

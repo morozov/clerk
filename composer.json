@@ -1,0 +1,21 @@
+{
+  "name": "morozov/clerk",
+  "authors": [
+    {
+      "name": "Sergei Morozov",
+      "email": "morozov@tut.by"
+    }
+  ],
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Clerk\\": "src/"
+    }
+  },
+  "require": {
+    "morozov/bootstrap": "~1.0",
+    "guzzlehttp/guzzle": "~4.2",
+    "symfony/config": "~2.5",
+    "symfony/dependency-injection": "~2.5"
+  }
+}

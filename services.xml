@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <!-- Guzzle -->
+        <service id="guzzle" class="GuzzleHttp\Client">
+            <argument type="collection">
+                <argument key="base_url">%sugar-internal.url%</argument>
+            </argument>
+        </service>
+
+        <!-- SugarInternal Client -->
+        <service id="client" class="Clerk\Client">
+            <argument type="service" id="guzzle"/>
+            <argument>%sugar-internal.username%</argument>
+            <argument>%sugar-internal.password%</argument>
+        </service>
+
+        <service id="parser" class="Clerk\Parser"/>
+        <service id="view" class="Clerk\View"/>
+
+        <service id="application" class="Clerk\Application">
+            <argument type="service" id="parser"/>
+            <argument type="service" id="classifier"/>
+            <argument type="service" id="view"/>
+            <argument type="service" id="client"/>
+        </service>
+    </services>
+
+</container>
