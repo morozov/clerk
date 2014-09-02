@@ -2,67 +2,44 @@
 
 namespace Clerk;
 
+use Clerk\Parser\Result;
 use Clerk\Parser\SyntaxException;
 use Clerk\Timesheet\Exception as TimesheetException;
 
 class Parser
 {
-    private $stream;
-    private $line;
-    private $date;
-    private $timesheet;
-    private $error;
-
-    public function __construct($stream = STDIN)
+    public function parse($stream)
     {
-        $this->stream = $stream;
-    }
+        $line = 0;
+        $date = null;
+        $results = array();
 
-    public function hasMore()
-    {
-        if ($this->timesheet || $this->error) {
-            return true;
-        }
-
-        $this->next();
-        return $this->timesheet || $this->error;
-    }
-
-    public function parse()
-    {
-        try {
-            if ($this->error) {
-                throw $this->error;
+        while (!feof($stream)) {
+            try {
+                $timesheet = $this->getTimesheet($stream, $line, $date);
+                if ($timesheet) {
+                    $results[] = $this->getResult($timesheet, null);
+                }
+            } catch (SyntaxException $e) {
+                $results[] = $this->getResult(null, $e);
             }
-            return $this->timesheet;
-        } finally {
-            $this->next();
         }
+
+        return $results;
     }
 
-    private function next()
+    private function getTimesheet($stream, &$line, \DateTime &$date = null)
     {
-        try {
-            $this->timesheet = $this->getTimesheet();
-            $this->error = null;
-        } catch (SyntaxException $e) {
-            $this->timesheet = null;
-            $this->error = $e;
-        }
-    }
-
-    private function getTimesheet()
-    {
-        while ($string = fgets($this->stream)) {
-            $this->line++;
+        while ($string = fgets($stream)) {
+            $line++;
             $string = trim($string);
             if ($string === '') {
-                $this->date = null;
-            } else if ($this->date === null) {
-                $this->date = $this->parseDate($string);
+                $date = null;
+            } else if ($date === null) {
+                $date = $this->parseDate($string, $line);
             } else {
-                list($subject, $spent) = $this->parseTimesheet($string);
-                $timesheet = $this->createTimesheet($subject, $spent);
+                list($subject, $spent) = $this->parseTimesheet($string, $line);
+                $timesheet = $this->createTimesheet($date, $subject, $spent, $line);
                 return $timesheet;
             }
         }
@@ -72,39 +49,54 @@ class Parser
 
     /**
      * @param string $string
+     * @param string $line
      *
      * @return \DateTime
      * @throws SyntaxException
      */
-    private function parseDate($string)
+    private function parseDate($string, $line)
     {
         try {
             return new \DateTime($string);
         } catch (\Exception $e) {
             throw new SyntaxException(
                 sprintf('Unable to parse date "%s"', $string),
-                $this->line,
+                $line,
                 $e
             );
         }
     }
 
-    private function parseTimesheet($string)
+    private function parseTimesheet($string, $line)
     {
         $parts = explode(' - ', $string, 2);
         if (count($parts) < 2) {
-            throw new SyntaxException('Time sheet line has wrong format', $this->line);
+            throw new SyntaxException('Time sheet line has wrong format', $line);
         }
 
         return $parts;
     }
 
-    private function createTimesheet($subject, $spent)
+    /**
+     * @param $date
+     * @param $subject
+     * @param $spent
+     * @param $line
+     *
+     * @return Timesheet
+     * @throws SyntaxException
+     */
+    private function createTimesheet($date, $subject, $spent, $line)
     {
         try {
-            return new Timesheet($subject, $this->date, $spent);
+            return new Timesheet($subject, $date, $spent);
         } catch (TimesheetException $e) {
-            throw new SyntaxException('Unable to create timesheet', $this->line);
+            throw new SyntaxException('Unable to create timesheet', $line);
         }
+    }
+
+    private function getResult($timesheet, $error)
+    {
+        return new Result($timesheet, $error);
     }
 }

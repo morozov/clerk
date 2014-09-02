@@ -20,24 +20,28 @@ class Application
         $this->client = $client;
     }
 
-    public function main()
+    public function main($stream = STDIN)
     {
-        $this->view->writeln('Enter timesheet data and press Ctrl+D:' . PHP_EOL);
+        if ($this->isATty($stream)) {
+            $this->view->writeln('Enter timesheet data and press Ctrl+D:' . PHP_EOL);
+        }
 
         $timesheets = array();
-        try {
-            while ($this->parser->hasMore()) {
-                try {
-                    $timesheet = $this->parser->parse();
-                    $this->classifier->update($timesheet);
-                    $timesheets[] = $timesheet;
-                    $this->view->displayTimesheet($timesheet);
-                } catch (SyntaxException $e) {
-                    $this->view->displayError($e);
-                }
+        $results = $this->parser->parse($stream);
+        if ($this->isATty($stream)) {
+            $this->view->writeln('Here\'s what we\'ve got:' . PHP_EOL);
+        }
+
+        foreach ($results as $result) {
+            if ($result->isError()) {
+                $error = $result->getError();
+                $this->view->displayError($error);
+            } else {
+                $timesheet = $result->getTimesheet();
+                $this->classifier->update($timesheet);
+                $timesheets[] = $timesheet;
+                $this->view->displayTimesheet($timesheet);
             }
-        } catch (Exception $e) {
-            $this->view->displayError($e);
         }
 
         if (!$timesheets) {
@@ -45,10 +49,17 @@ class Application
             return;
         }
 
-        $this->view->prompt('Press Enter to continue or Ctrl+C to abort');
+        if ($this->isATty($stream)) {
+            $this->view->prompt('Press Enter to continue or Ctrl+C to abort');
+        }
 
         foreach ($timesheets as $i => $timesheet) {
             $this->client->send($timesheet);
         }
+    }
+
+    public function isATty($stream)
+    {
+        return function_exists('posix_isatty') && posix_isatty($stream);
     }
 }
