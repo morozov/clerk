@@ -46,11 +46,19 @@
                 <argument>PTO</argument>
             </argument>
         </service>
+        <service id="activity.general-activities" class="Clerk\Classifier\Activity">
+            <argument>General activities</argument>
+            <argument type="service" id="task.general-activities"/>
+            <argument type="collection">
+                <argument>General activities</argument>
+            </argument>
+        </service>
         <service id="classifier" class="Clerk\Classifier">
             <argument type="collection">
                 <argument type="service" id="activity.interview"/>
                 <argument type="service" id="activity.internal-meetings"/>
                 <argument type="service" id="activity.pto"/>
+                <argument type="service" id="activity.general-activities"/>
             </argument>
             <argument type="service" id="activity.project-support"/>
         </service>

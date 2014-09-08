@@ -8,6 +8,10 @@ use Clerk\Timesheet\Exception as TimesheetException;
 
 class Parser
 {
+    /**
+     * @param resource $stream
+     * @return Result[]
+     */
     public function parse($stream)
     {
         $line = 0;

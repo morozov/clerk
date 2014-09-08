@@ -3,6 +3,7 @@
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
+use Symfony\Component\Console\Application;
 
 $autoload = __DIR__ . '/vendor/autoload.php';
 
@@ -22,4 +23,4 @@ $loader->load('services.xml');
 $loader->load('config.xml');
 
 $app = $container->get('application');
-$app->main();
+$app->run();

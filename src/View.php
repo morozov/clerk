@@ -22,24 +22,4 @@ class View
         printf('Task: %s' . PHP_EOL, $timesheet->getActivity()->getTask()->getName());
         printf(PHP_EOL);
     }
-
-    public function displayError(Exception $e)
-    {
-        printf('Error: %s (line %d)' . PHP_EOL, $e->getMessage(), $e->getSourceLine());
-        printf(PHP_EOL);
-    }
-
-    public function writeln($contents)
-    {
-        echo $contents, PHP_EOL;
-    }
-
-    public function prompt($message)
-    {
-        $this->writeln($message);
-
-        $handle = fopen('php://stdin', 'r');
-        fgets($handle);
-        fclose($handle);
-    }
 }

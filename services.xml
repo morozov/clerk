@@ -27,11 +27,19 @@
         <service id="parser" class="Clerk\Parser"/>
         <service id="view" class="Clerk\View"/>
 
-        <service id="application" class="Clerk\Application">
+        <service id="command.import" class="Clerk\Console\Command\Import">
             <argument type="service" id="parser"/>
             <argument type="service" id="classifier"/>
             <argument type="service" id="view"/>
             <argument type="service" id="client"/>
+        </service>
+
+        <service id="application" class="Symfony\Component\Console\Application">
+            <argument>Clerk</argument>
+            <argument>0.1.0</argument>
+            <call method="add">
+                <argument type="service" id="command.import"/>
+            </call>
         </service>
     </services>
 

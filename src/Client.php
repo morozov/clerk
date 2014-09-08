@@ -3,15 +3,58 @@
 namespace Clerk;
 
 use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Message\ResponseInterface;
 use IDCT\FileArrayCache as Cache;
 
+/**
+ * SugarInternal Client
+ */
 class Client
 {
+    /**
+     * HTTP client
+     *
+     * @var HttpClient
+     */
     private $httpClient;
+
+    /**
+     * Cache for storing authentication data
+     *
+     * @var Cache
+     */
     private $cache;
+
+    /**
+     * SugarInternal username
+     *
+     * @var string
+     */
     private $username;
+
+    /**
+     * SugarInternal password
+     *
+     * @var string
+     */
     private $password;
 
+    /**
+     * Whether fresh OAuth token has been fetched by current instance
+     *
+     * @var bool
+     */
+    private $oAuthTokenFetched = false;
+
+    /**
+     * Constructor
+     *
+     * @param HttpClient $httpClient HTTP client
+     * @param Cache      $cache      Authentication data cache
+     * @param string     $username   SugarInternal username
+     * @param string     $password   SugarInternal password
+     */
     public function __construct(HttpClient $httpClient, Cache $cache, $username, $password)
     {
         $this->httpClient = $httpClient;
@@ -20,24 +63,31 @@ class Client
         $this->password = $password;
     }
 
+    /**
+     * Sends timesheet to SugarInternal
+     *
+     * @param Timesheet $timesheet Timesheet
+     */
     public function send(Timesheet $timesheet)
     {
-        $this->getAuthData($userId, $oAuthToken);
-
-        $this->httpClient->post(array(
+        $this->sendAuthenticatedRequest('POST', array(
             '/rest/v10/Tasks/{task_id}/link/tasks_ps_timesheets_1',
             array(
                 'task_id' => $timesheet->getActivity()->getTask()->getId(),
             ),
         ), array(
-            'headers' => array(
-                'OAuth-Token' => $oAuthToken,
-            ),
-            'body' => $this->format($timesheet, $userId),
+            'body' => $this->format($timesheet),
         ));
     }
 
-    protected function format(Timesheet $timesheet, $userId)
+    /**
+     * Formats timesheet for API
+     *
+     * @param Timesheet $timesheet Timesheet
+     *
+     * @return array Formatted representation
+     */
+    protected function format(Timesheet $timesheet)
     {
         $activity = $timesheet->getActivity();
         $subject = $timesheet->getSubject();
@@ -47,7 +97,7 @@ class Client
         return array(
             'activity_type' => $activity->getName(),
             'tasks_ps_timesheets_1tasks_ida' => $activity->getTask()->getId(),
-            'assigned_user_id' => $userId,
+            'assigned_user_id' => $this->getUserId(),
             'name' => $name,
             'description' => $subject,
             'activity_date' => $date->format('Y-m-d'),
@@ -55,26 +105,75 @@ class Client
         );
     }
 
-    private function getAuthData(&$userId, &$oAuthToken)
+    /**
+     * Sends request with authentication data. In case if server responds 401, new OAuth token is obtained.
+     *
+     * @param string $method HTTP method
+     * @param mixed $url
+     * @param array $options
+     *
+     * @return ResponseInterface
+     */
+    private function sendAuthenticatedRequest($method, $url, $options = array())
     {
-        if (0 && isset($this->cache['user_id'], $this->cache['token'])) {
-            $userId = $this->cache['user_id'];
-            $oAuthToken = $this->cache['token'];
-        } else {
-            $this->authenticate($userId, $oAuthToken);
-            $this->cache['user_id'] = $userId;
-            $this->cache['token'] = $oAuthToken;
+        if (!isset($options['headers'])) {
+            $options['headers'] = array();
+        }
+        $options['headers']['OAuth-Token'] = $this->getOAuthToken();
+
+        $request = $this->httpClient->createRequest($method, $url, $options);
+
+        try {
+            return $this->httpClient->send($request);
+        } catch (ClientException $e) {
+            if ($e->getCode() === 401 && !$this->oAuthTokenFetched) {
+                unset($this->cache['token']);
+                return call_user_func_array(array($this, __FUNCTION__), func_get_args());
+            } else {
+                throw $e;
+            }
         }
     }
 
-    private function authenticate(&$userId, &$oAuthToken)
-    {
-        $oAuthToken = $this->getOAuthToken();
-        $userId = $this->getUserId($oAuthToken);
-    }
-
+    /**
+     * Returns OAuth token from cache or requests it from API
+     *
+     * @return string
+     */
     private function getOAuthToken()
     {
+        if (!isset($this->cache['token'])) {
+            if (isset($this->cache['user_id'])) {
+                unset($this->cache['user_id']);
+            }
+            $this->cache['token'] = $this->fetchOAuthToken();
+        }
+
+        return $this->cache['token'];
+    }
+
+    /**
+     * Returns ID of the user corresponding to current OAuth token
+     *
+     * @return string
+     */
+    private function getUserId()
+    {
+        if (!isset($this->cache['user_id'])) {
+            $this->cache['user_id'] = $this->fetchUserId();
+        }
+
+        return $this->cache['user_id'];
+    }
+
+    /**
+     * Requests new OAuth token from API
+     *
+     * @return string
+     */
+    private function fetchOAuthToken()
+    {
+        $this->oAuthTokenFetched = true;
         $response = $this->httpClient->post('/rest/v10/oauth2/token', array(
             'body' => array(
                 'grant_type' => 'password',
@@ -89,15 +188,16 @@ class Client
         return $message['access_token'];
     }
 
-    private function getUserId($oAuthToken)
+    /**
+     * Requests user ID from API
+     *
+     * @return string
+     */
+    private function fetchUserId()
     {
-        $response = $this->httpClient->get('/rest/v10/me', array(
-            'headers' => array(
-                'OAuth-Token' => $oAuthToken,
-            ),
-        ));
-
+        $response = $this->sendAuthenticatedRequest('GET', '/rest/v10/me');
         $message = $response->json();
+
         return $message['current_user']['id'];
     }
 }
