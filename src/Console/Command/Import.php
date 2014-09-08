@@ -5,8 +5,10 @@ namespace Clerk\Console\Command;
 use Clerk\Classifier;
 use Clerk\Client;
 use Clerk\Parser;
+use Clerk\Timesheet;
 use Clerk\View;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -44,6 +46,7 @@ class Import extends Command
     {
         $output->writeln('Enter timesheet data and press Ctrl+D:');
 
+        /** @var Timesheet[] $timesheets */
         $timesheets = array();
         $results = $this->parser->parse(STDIN);
         $output->writeln('<info>Here\'s what we\'ve got:</info>');
@@ -77,14 +80,17 @@ class Import extends Command
             return;
         }
 
-        $progress = $this->getHelper('progress');
-
-        $progress->start($output, count($timesheets));
+        $bar = new ProgressBar($output, count($timesheets));
+        $bar->setFormat("Importing %subject%\n%current%/%max% [%bar%] %percent:3s%% (%remaining:-6s% remaining)");
+        $bar->start();
         foreach ($timesheets as $timesheet) {
+            $bar->setMessage($timesheet->getSubject(), 'subject');
+            $bar->display();
             $this->client->send($timesheet);
-            $progress->advance();
+            $bar->advance();
         }
 
-        $progress->finish();
+        $bar->finish();
+        $output->writeln('');
     }
 } 
