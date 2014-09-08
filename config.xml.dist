@@ -14,11 +14,11 @@
     <services>
         <service id="task.bugfixing" class="Clerk\Classifier\Task">
             <argument>Bugfixing</argument>
-            <argument>b86344ae-3602-7465-fd50-4ec4dd28a3ef</argument>
+            <argument>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</argument>
         </service>
         <service id="task.general-activities" class="Clerk\Classifier\Task">
             <argument>General Activities</argument>
-            <argument>94bf8529-9ea3-ac44-57d2-4ec4dda60ec9</argument>
+            <argument>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</argument>
         </service>
         <service id="activity.project-support" class="Clerk\Classifier\Activity">
             <argument>Project Support</argument>
