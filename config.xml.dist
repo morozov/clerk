@@ -23,6 +23,9 @@
         <service id="activity.project-support" class="Clerk\Classifier\Activity">
             <argument>Project Support</argument>
             <argument type="service" id="task.bugfixing"/>
+            <argument type="collection">
+                <argument>/[A-Z]+-[0-9]+/</argument>
+            </argument>
         </service>
         <service id="activity.interview" class="Clerk\Classifier\Activity">
             <argument>Interview</argument>
@@ -49,18 +52,15 @@
         <service id="activity.general-activities" class="Clerk\Classifier\Activity">
             <argument>General activities</argument>
             <argument type="service" id="task.general-activities"/>
-            <argument type="collection">
-                <argument>General activities</argument>
-            </argument>
         </service>
         <service id="classifier" class="Clerk\Classifier">
             <argument type="collection">
                 <argument type="service" id="activity.interview"/>
                 <argument type="service" id="activity.internal-meetings"/>
                 <argument type="service" id="activity.pto"/>
-                <argument type="service" id="activity.general-activities"/>
+                <argument type="service" id="activity.project-support"/>
             </argument>
-            <argument type="service" id="activity.project-support"/>
+            <argument type="service" id="activity.general-activities"/>
         </service>
     </services>
 

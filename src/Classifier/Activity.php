@@ -26,8 +26,14 @@ class Activity extends Category
     {
         $subject = $timesheet->getSubject();
         foreach ($this->keywords as $keyword) {
-            if (stripos($subject, $keyword) !== false) {
-                return true;
+            if (preg_match('/^\/.*\/$/', $keyword)) {
+                if (preg_match($keyword . 'i', $subject)) {
+                    return true;
+                }
+            } else {
+                if (stripos($subject, $keyword) !== false) {
+                    return true;
+                }
             }
         }
 
